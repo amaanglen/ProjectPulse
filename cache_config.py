@@ -1,0 +1,4 @@
+CACHE_TYPE= 'RedisCache'
+CACHE_DEFAULT_TIMEOUT = 60000
+CACHE_KEY_PREFIX= 'task_api'
+CACHE_REDIS_URL = 'redis://localhost:6379/3'

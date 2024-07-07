@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+    <body>
+        <h1 style="color:rgb(10, 226, 136);">Dear User, </h1><br> <h1> This is your table of pending tasks</h1>
+        <table border="2">
+            <tr>
+                <th>List Name</th>
+                <th>Pending Tasks(s)</th>
+
+
+            </tr>
+            {% for key, value in data.items() %}
+              <tr>
+                    <td>{{ key }}</td>
+                    {% for val in value %}
+                    <td>{{ val }}</td>
+                    {% endfor %}
+              </tr>
+            {% endfor %}
+          </table>
+          <h3 style="color:rgb(10, 226, 136);">Thank you for using our application</h3>
+          <br>
+          <br>
+          <p>JanKanBan MAD II</p>
+    </body>
+</html>

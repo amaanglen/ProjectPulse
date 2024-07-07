@@ -1,0 +1,328 @@
+swagger: "2.0"
+info:
+  version: 1.0.0
+  title: My API
+  description: A simple API for managing users and lists
+  termsOfService: https://example.com/terms
+  contact:
+    name: John Doe
+    email: john.doe@example.com
+  license:
+    name: MIT
+    url: https://example.com/license
+host: https://example.com
+basePath: /api
+schemes:
+  - https
+paths:
+  /login:
+    get:
+      summary: Display the login page
+      responses:
+        200:
+          description: OK
+          schema:
+            type: object
+            properties:
+              a:
+                type: string
+                enum: [loginpage]
+    post:
+      summary: Log in a user
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            required:
+              - username
+              - password
+            properties:
+              username:
+                type: string
+              password:
+                type: string
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: "#/definitions/User"
+        404:
+          description: User not found
+          schema:
+            type: object
+            properties:
+              user:
+                type: string
+                enum: [registerpage]
+  /register:
+    get:
+      summary: Display the register page
+      responses:
+        200:
+          description: OK
+          schema:
+            type: object
+            properties:
+              a:
+                type: string
+                enum: [registerpage]
+    post:
+      summary: Register a new user
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            required:
+              - username
+              - password
+            properties:
+              username:
+                type: string
+              password:
+                type: string
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: "#/definitions/User"
+        400:
+          description: Invalid credentials
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                enum: [incomplete credentials]
+        409:
+          description: Username already taken
+          schema:
+            type: object
+/<int:user_id>:
+  put:
+    summary: Create a new list for a particular user.
+    operationId: createList
+    tags:
+      - List
+    security:
+      - api_key: []
+    parameters:
+      - name: user_id
+        in: path
+        description: ID of the user who will own the new list.
+        required: true
+        schema:
+          type: integer
+    requestBody:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/List"
+          example:
+            name: My List
+            description: A list of tasks.
+    responses:
+      201:
+        description: Successfully created new list.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/List"
+  get:
+    summary: Retrieve all lists for a particular user.
+    operationId: getLists
+    tags:
+      - List
+    security:
+      - api_key: []
+    parameters:
+      - name: user_id
+        in: path
+        description: ID of the user whose lists will be retrieved.
+        required: true
+        schema:
+          type: integer
+    responses:
+      200:
+        description: Successfully retrieved lists.
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: "#/components/schemas/List"
+  patch:
+    security:
+      - ApiKeyAuth: []
+    summary: Update a list by id
+    parameters:
+      - name: user_id
+        in: path
+        required: true
+        description: The id of the user
+        schema:
+          type: integer
+    requestBody:
+      required: true
+      content:
+        application/x-www-form-urlencoded:
+          schema:
+            type: object
+            required:
+              - old_name
+              - new_name
+            properties:
+              old_name:
+                type: string
+                description: The old name of the list
+              new_name:
+                type: string
+                description: The new name of the list
+              new_description:
+                type: string
+                description: The new description of the list
+    responses:
+      200:
+        description: List updated successfully
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/List"
+      404:
+        description: List not found
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                  description: Error message
+      500:
+        description: Internal Server Error
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                  description: Error message
+  /summary/{user_id}:
+    get:
+      summary: Retrieve a summary of a user's lists and cards
+      operationId: getSummary
+      parameters:
+        - name: user_id
+          in: path
+          description: ID of the user
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: Successful retrieval of summary
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    lid:
+                      type: integer
+                      description: ID of the list
+                    lname:
+                      type: string
+                      description: Name of the list
+                    completed:
+                      type: integer
+                      description: Number of completed cards in the list
+                    incomplete:
+                      type: integer
+                      description: Number of incomplete cards in the list
+        401:
+          description: Unauthorized access
+      security:
+        - basicAuth: []
+      x-cache:
+        timeout: 20
+  /compdate/{user_id}:
+    get:
+      summary: Retrieve completion date of completed cards of a user's lists
+      operationId: getCompDate
+      parameters:
+        - name: user_id
+          in: path
+          description: ID of the user
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: Successful retrieval of completion dates
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  lname:
+                    type: array
+                    items:
+                      type: array
+                      items:
+                        type: string
+                        description: listname, card name, completion date, and difference between completion date and creation date
+        401:
+          description: Unauthorized access
+      security:
+        - basicAuth: []
+      x-cache:
+        timeout: 20
+  /listexport/{user_id}:
+    get:
+      summary: Export lists of a user in csv format
+      operationId: exportList
+      parameters:
+      - name: user_id
+        in: path
+        description: ID of the user
+        required: true
+        schema:
+          type: integer
+      responses:
+        200:
+          description: Successful export of lists
+          content:
+            application/csv:
+              schema:
+                type: file
+                description: Lists in csv format
+        500:
+          description: Error while exporting lists
+      x-asynchronous: true
+  /cardexport/{user_id}:
+    get:
+      summary: Export cards of a user in csv format
+      operationId: exportCard
+      parameters:
+      - name: user_id
+        in: path
+        description: ID of the user
+        required: true
+        schema:
+          type: integer
+      responses:
+        200:
+          description: Successful export of cards
+          content:
+            application/csv:
+              schema:
+                type: file
+                description: Cards in csv format
+        500:
+          description: Error while exporting cards
+      x-asynchronous: true
